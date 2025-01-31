@@ -23,10 +23,12 @@ Utilisation d'un mot de passe en clair (mot de passe du root) pour se connecter 
 <h2>Solutions mises en place:</h2>
 
 Création de requêtes préparées (empêchant les injections SQL).
-<img src="images/exempro.png>
+<img src="images/exempro.png">
 
 Création d'un utilisateur spécifique à cette base de donnée avec des droits restreints.
-<img src="images/utilisateur.png>
+<img src="images/user1.png">
+<img src="images/user2.png">
+
 
 Ajout d'un check empêchant le stock de produit d'être négatif.
 <img src="images/check.png">

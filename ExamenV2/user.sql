@@ -1,0 +1,4 @@
+DROP USER IF EXISTS 'dbuser'@'localhost';
+CREATE USER 'dbuser'@'localhost' IDENTIFIED BY 'PLACEHOLDER_PASSWORD';
+GRANT SELECT, INSERT, UPDATE, DELETE ON Exam.* TO 'dbuser'@'localhost';
+FLUSH PRIVILEGES;

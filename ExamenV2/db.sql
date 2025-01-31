@@ -4,10 +4,6 @@ CREATE DATABASE Exam;
 
 USE Exam;
 
-DROP USER IF EXISTS 'dbuser'@'localhost';
-CREATE USER 'dbuser'@'localhost' IDENTIFIED BY 'PLACEHOLDER_PASSWORD';
-GRANT ALL PRIVILEGES ON Exam.* TO 'dbuser'@'localhost';
-FLUSH PRIVILEGES;
 
 CREATE TABLE Fournisseurs(
     id INT PRIMARY KEY AUTO_INCREMENT,

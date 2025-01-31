@@ -8,7 +8,7 @@ dotenv.config();
 const app = express();
 app.use(express.json());
 
-const dbConfig = {
+const rootDbConfig = {
     host: 'localhost',
     user: 'root',
     password: process.env.DB_PASSWORD,
@@ -16,29 +16,44 @@ const dbConfig = {
     multipleStatements: true
 };
 
-const executeSQLFile = async (connection, filePath) => {
-    const sql = fs.readFileSync(filePath, 'utf8');
+const userDbConfig = {
+    host: 'localhost',
+    user: 'dbuser',
+    password: process.env.DB_USER_PASSWORD,
+    database: 'Exam',
+    multipleStatements: true
+};
+
+const executeSQLFile = async (connection, filePath, replacements = {}) => {
+    let sql = fs.readFileSync(filePath, 'utf8');
+    for (const [key, value] of Object.entries(replacements)) {
+        sql = sql.replace(new RegExp(key, 'g'), value);
+    }
     await connection.query(sql);
     console.log(`${filePath} exécuté avec succès`);
 };
 
 const initDB = async () => {
     try {
-        const connection = await mysql.createConnection(dbConfig);
-        console.log('Connexion à MySQL réussie');
+        const rootConnection = await mysql.createConnection(rootDbConfig);
+        console.log('Connexion à MySQL réussie avec root');
 
-        await executeSQLFile(connection, 'db.sql');
-        await executeSQLFile(connection, 'data.sql');
+        await executeSQLFile(rootConnection, 'db.sql');
+        await executeSQLFile(rootConnection, 'data.sql');
+        await executeSQLFile(rootConnection, 'user.sql', { 'PLACEHOLDER_PASSWORD': process.env.DB_USER_PASSWORD });
 
         console.log('Base de données initialisée avec succès');
-        return connection;
+        return rootConnection;
     } catch (err) {
         console.error('Erreur lors de l\'initialisation de la base de données :', err);
         process.exit(1);
     }
 };
 
-initDB().then((connection) => {
+initDB().then(async (rootConnection) => {
+    const connection = await mysql.createConnection(userDbConfig);
+    console.log('Connexion à MySQL réussie avec dbuser');
+
     // CRUD FOURNISSEURS
     app.get('/fournisseurs', async (req, res) => {
         const [fournisseurs] = await connection.query('CALL getFournisseurs()');
