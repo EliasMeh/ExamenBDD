@@ -59,6 +59,31 @@ Vérification de l'input d'email (la forme de l'email):
 <img src="images/verifemail.png">
 
 
+<h1>Améliorations demandées</h1>
+<h2>Commandes par année</h2>
+<img src="images/amelioration/commandeame.png">
+
+<h2>Commandes par client</h2>
+<img src="images/amelioration/clientcom.png">
+
+<h2>Lignes de commandes par produits</h2>
+<img src="images/amelioration/produitcom.png">
+
+<h2>Recherche améliorée</h2>
+<img src="images/amelioration/rechercheame.png">
+
+<h2>Stats des plus vendus</h2>
+<img src="images/amelioration/mostsold.png">
+
+<h2>Stats du total des ventes</h2>
+<img src="images/amelioration/totalventes.png">
+
+<h2>Commande automatique améliorée (décrémentation, vérifications)</h2>
+<p>Je l'avais déjà fait avant d'où sa présence 2 fois dans ce doc</p>
+<img src="images/amelioration/commandeautoame.png">
+
+<h2>Notification de stock faible</h2>
+<img src="images/amelioration/stockfaible.png">
 
 <h1>IMPORTANT</h1>
 Le .env doit ressembler à ceci:
@@ -72,8 +97,10 @@ DB_USER_PASSWORD étant le mot de passe que vous voulez.
 <img src="images/MCD.png">
 
 Manque : 
-L'ajout d'une clé OU l'ajout d'une authentification pour utiliser l'API (JWT)
-FRONT-END
+<br>L'ajout d'une clé OU l'ajout d'une authentification pour utiliser l'API (JWT)
+<br>FRONT-END
+<br>Historique des commit (j'ai lu la partie sur l'historique des commit entre V1 et V2 que à la fin et vu que quand j'ai mis ExamenV1 et ExamenV2 qui avaient déjà des repo git dans ExamenBDD ca a fait des submodules innaccessible ducoup j'ai dû les supprimer, il ne reste que les commit d'après la création des routes CRUD sécurisées V2/ou non V1)
+<br>
 
 <h1>Problèmes rencontrés:</h1>
 Mysql ne prend pas en compte les delimiters? 
@@ -82,3 +109,4 @@ Mysql ne prend pas en compte les delimiters?
 <br>DELIMITER is not part of SQL syntax – it's a MySQL CLI command.
 <br>MySQL clients like mysql2 don't need it – they execute queries as-is.
 <br>Stored procedures work without it – Just ensure BEGIN ... END; is used correctly.
+
