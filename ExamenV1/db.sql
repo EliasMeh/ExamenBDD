@@ -7,30 +7,30 @@ USE Exam ;
 
 CREATE TABLE Fournisseurs(
     id INT PRIMARY KEY AUTO_INCREMENT,
-    nomfournisseur VARCHAR(255) NOT NULL,
-    codepostal VARCHAR(5) NOT NULL
+    nomfournisseur VARCHAR(255),
+    codepostal VARCHAR(5)  
 ) ;
 
 CREATE TABLE Categories(
     id INT PRIMARY KEY AUTO_INCREMENT,
-    nomcategorie VARCHAR(255) NOT NULL
+    nomcategorie VARCHAR(255)
 ) ;
 
 
 CREATE TABLE Produits(
     id INT PRIMARY KEY AUTO_INCREMENT,
-    nomreference VARCHAR(255) NOT NULL,
-    quantitestock INT NOT NULL,
-    prixunitaire DECIMAL(10,2) NOT NULL,
+    nomreference VARCHAR(255),
+    quantitestock INT,
+    prixunitaire DECIMAL(10,2),
 
-    idcategorie INT NOT NULL,
+    idcategorie INT ,
 
     FOREIGN KEY (idcategorie) REFERENCES Categories(id)
 ) ;
 
 CREATE TABLE Fournir(
-    idproduit INT NOT NULL,
-    idfournisseur INT NOT NULL,
+    idproduit INT,
+    idfournisseur INT,
     FOREIGN KEY (idproduit) REFERENCES Produits(id),
     FOREIGN KEY (idfournisseur) REFERENCES Fournisseurs(id)
 ) ;
@@ -38,27 +38,27 @@ CREATE TABLE Fournir(
 
 CREATE TABLE Clients(
     id INT PRIMARY KEY AUTO_INCREMENT,
-    nomclient VARCHAR(255) NOT NULL,
-    prenomclient VARCHAR(255) NOT NULL,
-    emailclient VARCHAR(255) NOT NULL,
-    adresseclient VARCHAR(255) NOT NULL,
-    codepostalclient VARCHAR(5) NOT NULL
+    nomclient VARCHAR(255),
+    prenomclient VARCHAR(255),
+    emailclient VARCHAR(255) ,
+    adresseclient VARCHAR(255),
+    codepostalclient VARCHAR(5) 
 ) ;
 
 CREATE TABLE Commandes(
     id INT PRIMARY KEY AUTO_INCREMENT,
-    datecommande DATE NOT NULL,
-    idclient INT NOT NULL,
+    datecommande DATE ,
+    idclient INT ,
     FOREIGN KEY (idclient) REFERENCES Clients(id)
 ) ;
 
 
 CREATE TABLE LignesCommandes(
     id INT PRIMARY KEY AUTO_INCREMENT,
-    idcommande INT NOT NULL,
-    idproduit INT NOT NULL,
-    quantitecommande INT NOT NULL,
-    prixunitaire DECIMAL(10,2) NOT NULL,
+    idcommande INT ,
+    idproduit INT ,
+    quantitecommande INT,
+    prixunitaire DECIMAL(10,2) ,
     FOREIGN KEY (idcommande) REFERENCES Commandes(id),
     FOREIGN KEY (idproduit) REFERENCES Produits(id)
 ) ;
