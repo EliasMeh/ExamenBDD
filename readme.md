@@ -64,7 +64,8 @@ DB_USER_PASSWORD=azerty
 Avec DB_PASSWORD contenant le mdp de votre root user personnel de mysql et 
 DB_USER_PASSWORD étant le mot de passe que vous voulez.
 
-
+<h1>Schema</h1>
+<img src="images/MCD.png">
 
 Manque : 
 L'ajout d'une clé OU l'ajout d'une authentification pour utiliser l'API (JWT)
