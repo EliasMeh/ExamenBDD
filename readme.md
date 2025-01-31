@@ -1,6 +1,6 @@
-Explication de l'audit de l'API:
+<h1>Explication de l'audit de l'API:</h1>
 
-Manquements:
+<h2>Manquements:</h2>
 Pas de protection contre les injections SQL :
 <img src="images/injectionsql.png">
 Donc par exemple perte de cohérence de la base de donnée en cas d'attaque.
@@ -20,7 +20,7 @@ Problèmes changés dans la V1 pour éviter les incohérence ou les partage de m
 
 Utilisation d'un mot de passe en clair (mot de passe du root) pour se connecter à la base de donnée qui est ici déplacé dans le .env qui n'est pas sauvegardé dans le repo.
 
-Solutions mises en place:
+<h2>Solutions mises en place:</h2>
 
 Création de requêtes préparées (empêchant les injections SQL).
 <img src="images/exempro.png>
