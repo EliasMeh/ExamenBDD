@@ -30,13 +30,13 @@ Création d'un utilisateur spécifique à cette base de donnée avec des droits 
 <img src="images/user2.png">
 
 
-Ajout d'un check empêchant le stock de produit d'être négatif.
+Ajout d'un check empêchant le stock de produit d'être négatif et de NOT NULL dans toutes les tables pour rendre les données cohérentes.
 <img src="images/check.png">
 
 Ajout de transaction et changement de la logique de commande (lors de la création d'une commande, automatisation de la création des lignes de commandes et rollback en cas de commandes > à la quantité de produit en stock et donc rollback(pas d'incohérence dans les données)):
 <img src="images/ameliorationlogique.png">
 
-exemple de json de requête pour post /commandes
+exemple de json de requête pour post /commandeauto
 <p>{ 
 <br>    "datecommande": "2023-10-01",
 <br>    "idclient": 1,
@@ -62,8 +62,8 @@ Vérification de l'input d'email (la forme de l'email):
 
 <h1>IMPORTANT</h1>
 Le .env doit ressembler à ceci:
-DB_PASSWORD=azerty
-DB_USER_PASSWORD=azerty
+<br>DB_PASSWORD=azerty
+<br>DB_USER_PASSWORD=azerty
 
 Avec DB_PASSWORD contenant le mdp de votre root user personnel de mysql et 
 DB_USER_PASSWORD étant le mot de passe que vous voulez.
@@ -74,3 +74,11 @@ DB_USER_PASSWORD étant le mot de passe que vous voulez.
 Manque : 
 L'ajout d'une clé OU l'ajout d'une authentification pour utiliser l'API (JWT)
 FRONT-END
+
+<h1>Problèmes rencontrés:</h1>
+Mysql ne prend pas en compte les delimiters? 
+<br>Réponse de chatgpt:
+<br>❌ Why DELIMITER Doesn't Work in mysql2?
+<br>DELIMITER is not part of SQL syntax – it's a MySQL CLI command.
+<br>MySQL clients like mysql2 don't need it – they execute queries as-is.
+<br>Stored procedures work without it – Just ensure BEGIN ... END; is used correctly.
