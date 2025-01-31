@@ -110,6 +110,17 @@ initDB().then(async (rootConnection) => {
         res.status(200).end();
     });
 
+    app.get('/produits/:id/commandes', async (req, res) => {
+        const productId = req.params.id;
+        const [commandes] = await connection.query(`
+            SELECT c.* 
+            FROM Commandes c
+            JOIN LignesCommandes lc ON c.id = lc.idcommande
+            WHERE lc.idproduit = ?
+        `, [productId]);
+        res.json(commandes);
+    });
+
     // CRUD CATEGORIES
     app.get('/categories', async (req, res) => {
         const [categories] = await connection.query('SELECT * FROM Categories');
@@ -201,9 +212,25 @@ initDB().then(async (rootConnection) => {
         res.status(200).end();
     });
 
+    app.get('/clients/:id/commandes', async (req, res) => {
+        const clientId = req.params.id;
+        const [commandes] = await connection.query('SELECT * FROM Commandes WHERE idclient = ?', [clientId]);
+        res.json(commandes);
+    });
+
+
     // CRUD COMMANDES
     app.get('/commandes', async (req, res) => {
-        const [commandes] = await connection.query('SELECT * FROM Commandes');
+        const { start, end } = req.query;
+        let query = 'SELECT * FROM Commandes';
+        const params = [];
+    
+        if (start && end) {
+            query += ' WHERE datecommande BETWEEN ? AND ?';
+            params.push(start, end);
+        }
+    
+        const [commandes] = await connection.query(query, params);
         res.json(commandes);
     });
     app.post('/commandes', async (req, res) => {
@@ -227,6 +254,41 @@ initDB().then(async (rootConnection) => {
         const id = req.params.id;
         await connection.query('DELETE FROM Commandes WHERE id = ?', [id]);
         res.status(200).end();
+    });
+
+    app.get('/commandes/search', async (req, res) => {
+        const { clientId, startDate, endDate, productId } = req.query;
+        let query = `
+            SELECT DISTINCT c.* 
+            FROM Commandes c
+            LEFT JOIN LignesCommandes lc ON c.id = lc.idcommande
+            WHERE 1=1
+        `;
+        const params = [];
+    
+        if (clientId) {
+            query += ' AND c.idclient = ?';
+            params.push(clientId);
+        }
+        if (startDate && endDate) {
+            query += ' AND c.datecommande BETWEEN ? AND ?';
+            params.push(startDate, endDate);
+        }
+        if (productId) {
+            query += ' AND lc.idproduit = ?';
+            params.push(productId);
+        }
+    
+        console.log('Constructed Query:', query);
+        console.log('Query Parameters:', params);
+    
+        try {
+            const [commandes] = await connection.query(query, params);
+            res.json(commandes);
+        } catch (err) {
+            console.error('Error executing query:', err);
+            res.status(500).json({ error: 'Erreur lors de la recherche des commandes' });
+        }
     });
 
     // CRUD LIGNESCOMMANDES
@@ -268,40 +330,101 @@ initDB().then(async (rootConnection) => {
         await connection.beginTransaction();
     
         try {
-            // Insert the new commande
             const [result] = await connection.query('INSERT INTO Commandes (datecommande, idclient) VALUES (?, ?)', [date_commande, idClient]);
             const idCommande = result.insertId;
     
             for (const ligne of lignescommandes) {
                 const { idproduit, quantitecommande, prixunitaire } = ligne;
-    
                 if (!idproduit || !quantitecommande || !prixunitaire) {
                     throw new Error('Missing required parameters in one of the lignescommandes');
                 }
-    
-                // Check the stock quantity
                 const [produit] = await connection.query('SELECT quantitestock FROM Produits WHERE id = ?', [idproduit]);
                 if (produit.length === 0) {
                     throw new Error(`Product with id ${idproduit} not found`);
                 }
-    
                 const newQuantiteStock = produit[0].quantitestock - quantitecommande;
                 if (newQuantiteStock < 0) {
                     throw new Error(`Not enough stock for product with id ${idproduit}`);
                 }
-    
-                // Update the stock quantity
                 await connection.query('UPDATE Produits SET quantitestock = ? WHERE id = ?', [newQuantiteStock, idproduit]);
-    
-                // Insert the lignecommande
                 await connection.query('INSERT INTO LignesCommandes (idcommande, idproduit, quantitecommande, prixunitaire) VALUES (?, ?, ?, ?)', [idCommande, idproduit, quantitecommande, prixunitaire]);
             }
-    
             await connection.commit();
             res.status(201).json({ message: 'Commande and lignescommandes created successfully' });
         } catch (error) {
             await connection.rollback();
             res.status(400).json({ error: error.message });
+        }
+    });
+
+    //Produit le plus vendu
+    app.get('/stats/lesplusvendus', async (req, res) => {
+        const { startDate, endDate } = req.query;
+        let query = `
+            SELECT p.nomreference, SUM(lc.quantitecommande) AS total_sold
+            FROM Produits p
+            JOIN LignesCommandes lc ON p.id = lc.idproduit
+            JOIN Commandes c ON lc.idcommande = c.id
+            WHERE 1=1
+        `;
+        const params = [];
+    
+        if (startDate && endDate) {
+            query += ' AND c.datecommande BETWEEN ? AND ?';
+            params.push(startDate, endDate);
+        }
+    
+        query += ' GROUP BY p.nomreference ORDER BY total_sold DESC';
+    
+        try {
+            const [results] = await connection.query(query, params);
+            res.json(results);
+        } catch (err) {
+            console.error('Error executing query:', err);
+            res.status(500).json({ error: 'Erreur lors de la récupération des produits les plus vendus' });
+        }
+    });
+
+    //Total des produits vendus sur une période
+    app.get('/stats/totalventes', async (req, res) => {
+        const { startDate, endDate } = req.query;
+        let query = `
+            SELECT SUM(lc.quantitecommande * lc.prixunitaire) AS total_sales
+            FROM LignesCommandes lc
+            JOIN Commandes c ON lc.idcommande = c.id
+            WHERE 1=1
+        `;
+        const params = [];
+    
+        if (startDate && endDate) {
+            query += ' AND c.datecommande BETWEEN ? AND ?';
+            params.push(startDate, endDate);
+        }
+    
+        try {
+            const [results] = await connection.query(query, params);
+            res.json(results[0]);
+        } catch (err) {
+            console.error('Error executing query:', err);
+            res.status(500).json({ error: 'Erreur lors de la récupération des ventes totales' });
+        }
+    });
+
+    //Notification de stock faible
+    app.get('/produits/stock-faible', async (req, res) => {
+        const { seuil } = req.query;
+        const threshold = parseInt(seuil, 10);
+    
+        if (isNaN(threshold)) {
+            return res.status(400).json({ error: 'Invalid threshold value' });
+        }
+    
+        try {
+            const [products] = await connection.query('SELECT * FROM Produits WHERE quantitestock < ?', [threshold]);
+            res.json(products);
+        } catch (err) {
+            console.error('Error executing query:', err);
+            res.status(500).json({ error: 'Erreur lors de la récupération des produits avec stock faible' });
         }
     });
 
