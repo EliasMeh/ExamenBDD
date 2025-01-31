@@ -34,24 +34,26 @@ Ajout d'un check empêchant le stock de produit d'être négatif.
 <img src="images/check.png">
 
 Ajout de transaction et changement de la logique de commande (lors de la création d'une commande, automatisation de la création des lignes de commandes et rollback en cas de commandes > à la quantité de produit en stock et donc rollback(pas d'incohérence dans les données)):
+<img src="images/ameliorationlogique.png">
 
 exemple de json de requête pour post /commandes
-{
-    "datecommande": "2023-10-01",
-    "idclient": 1,
-    "lignescommandes": [
-        {
+<p>{ 
+<br>    "datecommande": "2023-10-01",
+<br>    "idclient": 1,
+<br>    "lignescommandes": [
+<br>        {
             "idproduit": 1,
             "quantitecommande": 2,
             "prixunitaire": 10.50
         },
-        {
+<br>        {
             "idproduit": 2,
             "quantitecommande": 1,
             "prixunitaire": 20.00
         }
-    ]
+<br>    ]
 }
+</p>
 
 Vérification de l'input d'email (la forme de l'email):
 <img src="images/verifemail.png">
