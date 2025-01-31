@@ -60,19 +60,19 @@ Vérification de l'input d'email (la forme de l'email):
 
 
 <h1>Améliorations demandées</h1>
-<h2>Commandes par année</h2>
+<h2>Commandes par années (intervales)</h2>
 <img src="images/amelioration/commandeame.png">
 
 <h2>Commandes par client</h2>
 <img src="images/amelioration/clientcom.png">
 
-<h2>Lignes de commandes par produits</h2>
+<h2>Commandes par produits</h2>
 <img src="images/amelioration/produitcom.png">
 
-<h2>Recherche améliorée</h2>
+<h2>Recherche améliorée (à plusieurs facteurs)</h2>
 <img src="images/amelioration/rechercheame.png">
 
-<h2>Stats des plus vendus</h2>
+<h2>Classement des plus vendus</h2>
 <img src="images/amelioration/mostsold.png">
 
 <h2>Stats du total des ventes</h2>
@@ -86,9 +86,15 @@ Vérification de l'input d'email (la forme de l'email):
 <img src="images/amelioration/stockfaible.png">
 
 <h1>IMPORTANT</h1>
+<h2>Le .env</h2>
 Le .env doit ressembler à ceci:
 <br>DB_PASSWORD=azerty
 <br>DB_USER_PASSWORD=azerty
+<h2>Installation des dépendances</h2>
+npm install
+<h2>Lancement des applications</h2>
+node Script.js
+
 
 Avec DB_PASSWORD contenant le mdp de votre root user personnel de mysql et 
 DB_USER_PASSWORD étant le mot de passe que vous voulez.
@@ -96,7 +102,11 @@ DB_USER_PASSWORD étant le mot de passe que vous voulez.
 <h1>Schema</h1>
 <img src="images/MCD.png">
 
-Manque : 
+<h1>Routes (endpoints par swagger)</h1>
+Disponibles sur : http://localhost:3000/api-docs
+Il faut d'abord lancer node Script.js sur ExamenV2.
+
+<h2>Manque :</h2> 
 <br>L'ajout d'une clé OU l'ajout d'une authentification pour utiliser l'API (JWT)
 <br>FRONT-END
 <br>Historique des commit (j'ai lu la partie sur l'historique des commit entre V1 et V2 que à la fin et vu que quand j'ai mis ExamenV1 et ExamenV2 qui avaient déjà des repo git dans ExamenBDD ca a fait des submodules innaccessible ducoup j'ai dû les supprimer, il ne reste que les commit d'après la création des routes CRUD sécurisées V2/ou non V1)

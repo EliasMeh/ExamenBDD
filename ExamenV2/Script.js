@@ -2,11 +2,13 @@ const dotenv = require('dotenv');
 const express = require('express');
 const mysql = require('mysql2/promise');
 const fs = require('fs');
+const swaggerSetup = require('./swagger');
 
 dotenv.config();
 
 const app = express();
 app.use(express.json());
+swaggerSetup(app);
 
 const rootDbConfig = {
     host: 'localhost',
@@ -55,10 +57,55 @@ initDB().then(async (rootConnection) => {
     console.log('Connexion à MySQL réussie avec dbuser');
 
     // CRUD FOURNISSEURS
+
+    /**
+ * @swagger
+ * /fournisseurs:
+ *   get:
+ *     summary: Retrieve a list of fournisseurs
+ *     responses:
+ *       200:
+ *         description: A list of fournisseurs
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   id:
+ *                     type: integer
+ *                   nom:
+ *                     type: string
+ *                   codepostal:
+ *                     type: string
+ */
     app.get('/fournisseurs', async (req, res) => {
         const [fournisseurs] = await connection.query('CALL getFournisseurs()');
         res.json(fournisseurs);
     });
+    /**
+ * @swagger
+ * /fournisseurs:
+ *   post:
+ *     summary: Create a new fournisseur
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               nom:
+ *                 type: string
+ *               codepostal:
+ *                 type: string
+ *     responses:
+ *       201:
+ *         description: Created
+ *       400:
+ *         description: Missing required parameters
+ */
     app.post('/fournisseurs', async (req, res) => {
         const { nom, codepostal } = req.body;
         if (!nom || !codepostal) {
@@ -67,6 +114,35 @@ initDB().then(async (rootConnection) => {
         await connection.query('INSERT INTO Fournisseurs (nom, codepostal) VALUES (?, ?)', [nom, codepostal]);
         res.status(201).end();
     });
+    /**
+ * @swagger
+ * /fournisseurs/{id}:
+ *   put:
+ *     summary: Update a fournisseur
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               nom:
+ *                 type: string
+ *               codepostal:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Updated
+ *       400:
+ *         description: Missing required parameters
+ */
+
     app.put('/fournisseurs/:id', async (req, res) => {
         const id = req.params.id;
         const { nom, codepostal } = req.body;
@@ -76,6 +152,21 @@ initDB().then(async (rootConnection) => {
         await connection.query('UPDATE Fournisseurs SET nom = ?, codepostal = ? WHERE id = ?', [nom, codepostal, id]);
         res.status(200).end();
     });
+    /**
+ * @swagger
+ * /fournisseurs/{id}:
+ *   delete:
+ *     summary: Delete a fournisseur
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Deleted
+ */
     app.delete('/fournisseurs/:id', async (req, res) => {
         const id = req.params.id;
         await connection.query('DELETE FROM Fournisseurs WHERE id = ?', [id]);
@@ -83,10 +174,64 @@ initDB().then(async (rootConnection) => {
     });
 
     // CRUD PRODUITS
+
+    /**
+ * @swagger
+ * /produits:
+ *   get:
+ *     summary: Retrieve a list of produits
+ *     responses:
+ *       200:
+ *         description: A list of produits
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   id:
+ *                     type: integer
+ *                   nomreference:
+ *                     type: string
+ *                   quantitestock:
+ *                     type: integer
+ *                   prixunitaire:
+ *                     type: number
+ *                   idcategorie:
+ *                     type: integer
+ */
     app.get('/produits', async (req, res) => {
         const [produits] = await connection.query('SELECT * FROM Produits');
         res.json(produits);
     });
+
+    /**
+ * @swagger
+ * /produits:
+ *   post:
+ *     summary: Create a new produit
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               nomreference:
+ *                 type: string
+ *               quantitestock:
+ *                 type: integer
+ *               prixunitaire:
+ *                 type: number
+ *               idcategorie:
+ *                 type: integer
+ *     responses:
+ *       201:
+ *         description: Created
+ *       400:
+ *         description: Missing required parameters
+ */
     app.post('/produits', async (req, res) => {
         const { nomreference, quantitestock, prixunitaire, idcategorie } = req.body;
         if (!nomreference || !quantitestock || !prixunitaire || !idcategorie) {
@@ -95,6 +240,38 @@ initDB().then(async (rootConnection) => {
         await connection.query('INSERT INTO Produits (nomreference, quantitestock, prixunitaire, idcategorie) VALUES (?, ?, ?, ?)', [nomreference, quantitestock, prixunitaire, idcategorie]);
         res.status(201).end();
     });
+    /**
+ * @swagger
+ * /produits/{id}:
+ *   put:
+ *     summary: Update a produit
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               nomreference:
+ *                 type: string
+ *               quantitestock:
+ *                 type: integer
+ *               prixunitaire:
+ *                 type: number
+ *               idcategorie:
+ *                 type: integer
+ *     responses:
+ *       200:
+ *         description: Updated
+ *       400:
+ *         description: Missing required parameters
+ */
     app.put('/produits/:id', async (req, res) => {
         const id = req.params.id;
         const { nomreference, quantitestock, prixunitaire, idcategorie } = req.body;
@@ -104,12 +281,55 @@ initDB().then(async (rootConnection) => {
         await connection.query('UPDATE Produits SET nomreference = ?, quantitestock = ?, prixunitaire = ?, idcategorie = ? WHERE id = ?', [nomreference, quantitestock, prixunitaire, idcategorie, id]);
         res.status(200).end();
     });
+    /**
+ * @swagger
+ * /produits/{id}:
+ *   delete:
+ *     summary: Delete a produit
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Deleted
+ */
     app.delete('/produits/:id', async (req, res) => {
         const id = req.params.id;
         await connection.query('DELETE FROM Produits WHERE id = ?', [id]);
         res.status(200).end();
     });
 
+    /**
+ * @swagger
+ * /produits/{id}/commandes:
+ *   get:
+ *     summary: Retrieve a list of commandes for a specific produit
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: A list of commandes
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   id:
+ *                     type: integer
+ *                   datecommande:
+ *                     type: string
+ *                   idclient:
+ *                     type: integer
+ */
     app.get('/produits/:id/commandes', async (req, res) => {
         const productId = req.params.id;
         const [commandes] = await connection.query(`
@@ -122,10 +342,50 @@ initDB().then(async (rootConnection) => {
     });
 
     // CRUD CATEGORIES
+    /**
+ * @swagger
+ * /categories:
+ *   get:
+ *     summary: Retrieve a list of categories
+ *     responses:
+ *       200:
+ *         description: A list of categories
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   id:
+ *                     type: integer
+ *                   nom:
+ *                     type: string
+ */
     app.get('/categories', async (req, res) => {
         const [categories] = await connection.query('SELECT * FROM Categories');
         res.json(categories);
     });
+    /**
+ * @swagger
+ * /categories:
+ *   post:
+ *     summary: Create a new category
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               nom:
+ *                 type: string
+ *     responses:
+ *       201:
+ *         description: Created
+ *       400:
+ *         description: Missing required parameter
+ */
     app.post('/categories', async (req, res) => {
         const { nom } = req.body;
         if (!nom) {
@@ -134,6 +394,32 @@ initDB().then(async (rootConnection) => {
         await connection.query('INSERT INTO Categories (nom) VALUES (?)', [nom]);
         res.status(201).end();
     });
+    /**
+ * @swagger
+ * /categories/{id}:
+ *   put:
+ *     summary: Update a category
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               nom:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Updated
+ *       400:
+ *         description: Missing required parameter
+ */
     app.put('/categories/:id', async (req, res) => {
         const id = req.params.id;
         const { nom } = req.body;
@@ -143,6 +429,21 @@ initDB().then(async (rootConnection) => {
         await connection.query('UPDATE Categories SET nom = ? WHERE id = ?', [nom, id]);
         res.status(200).end();
     });
+    /**
+ * @swagger
+ * /categories/{id}:
+ *   delete:
+ *     summary: Delete a category
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Deleted
+ */
     app.delete('/categories/:id', async (req, res) => {
         const id = req.params.id;
         await connection.query('DELETE FROM Categories WHERE id = ?', [id]);
@@ -150,10 +451,54 @@ initDB().then(async (rootConnection) => {
     });
 
     // CRUD FOURNIR
+
+    /**
+ * @swagger
+ * /fournir:
+ *   get:
+ *     summary: Retrieve a list of fournir
+ *     responses:
+ *       200:
+ *         description: A list of fournir
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   idproduit:
+ *                     type: integer
+ *                   idfournisseur:
+ *                     type: integer
+ */
+
     app.get('/fournir', async (req, res) => {
         const [fournir] = await connection.query('SELECT * FROM Fournir');
         res.json(fournir);
     });
+    /**
+ * @swagger
+ * /fournir:
+ *   post:
+ *     summary: Create a new fournir
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               idproduit:
+ *                 type: integer
+ *               idfournisseur:
+ *                 type: integer
+ *     responses:
+ *       201:
+ *         description: Created
+ *       400:
+ *         description: Missing required parameters
+ */
     app.post('/fournir', async (req, res) => {
         const { idproduit, idfournisseur } = req.body;
         if (!idproduit || !idfournisseur) {
@@ -162,6 +507,39 @@ initDB().then(async (rootConnection) => {
         await connection.query('INSERT INTO Fournir (idproduit, idfournisseur) VALUES (?, ?)', [idproduit, idfournisseur]);
         res.status(201).end();
     });
+    /**
+ * @swagger
+ * /fournir/{idproduit}/{idfournisseur}:
+ *   put:
+ *     summary: Update a fournir
+ *     parameters:
+ *       - in: path
+ *         name: idproduit
+ *         required: true
+ *         schema:
+ *           type: integer
+ *       - in: path
+ *         name: idfournisseur
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               newIdproduit:
+ *                 type: integer
+ *               newIdfournisseur:
+ *                 type: integer
+ *     responses:
+ *       200:
+ *         description: Updated
+ *       400:
+ *         description: Missing required parameters
+ */
     app.put('/fournir/:idproduit/:idfournisseur', async (req, res) => {
         const { idproduit, idfournisseur } = req.params;
         const { newIdproduit, newIdfournisseur } = req.body;
@@ -171,6 +549,26 @@ initDB().then(async (rootConnection) => {
         await connection.query('UPDATE Fournir SET idproduit = ?, idfournisseur = ? WHERE idproduit = ? AND idfournisseur = ?', [newIdproduit, newIdfournisseur, idproduit, idfournisseur]);
         res.status(200).end();
     });
+    /**
+ * @swagger
+ * /fournir/{idproduit}/{idfournisseur}:
+ *   delete:
+ *     summary: Delete a fournir
+ *     parameters:
+ *       - in: path
+ *         name: idproduit
+ *         required: true
+ *         schema:
+ *           type: integer
+ *       - in: path
+ *         name: idfournisseur
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Deleted
+ */
     app.delete('/fournir/:idproduit/:idfournisseur', async (req, res) => {
         const { idproduit, idfournisseur } = req.params;
         await connection.query('DELETE FROM Fournir WHERE idproduit = ? AND idfournisseur = ?', [idproduit, idfournisseur]);
@@ -178,10 +576,66 @@ initDB().then(async (rootConnection) => {
     });
 
     // CRUD CLIENTS
+    /**
+ * @swagger
+ * /clients:
+ *   get:
+ *     summary: Retrieve a list of clients
+ *     responses:
+ *       200:
+ *         description: A list of clients
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   id:
+ *                     type: integer
+ *                   nomclient:
+ *                     type: string
+ *                   prenomclient:
+ *                     type: string
+ *                   emailclient:
+ *                     type: string
+ *                   adresseclient:
+ *                     type: string
+ *                   codepostalclient:
+ *                     type: string
+ */
     app.get('/clients', async (req, res) => {
         const [clients] = await connection.query('SELECT * FROM Clients');
         res.json(clients);
     });
+    /**
+ * @swagger
+ * /clients:
+ *   post:
+ *     summary: Create a new client
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               nomclient:
+ *                 type: string
+ *               prenomclient:
+ *                 type: string
+ *               emailclient:
+ *                 type: string
+ *               adresseclient:
+ *                 type: string
+ *               codepostalclient:
+ *                 type: string
+ *     responses:
+ *       201:
+ *         description: Created
+ *       400:
+ *         description: Missing required parameters or invalid email format
+ */
     app.post('/clients', async (req, res) => {
         const { nomclient, prenomclient, emailclient, adresseclient, codepostalclient } = req.body;
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -197,6 +651,40 @@ initDB().then(async (rootConnection) => {
         await connection.query('INSERT INTO Clients (nomclient, prenomclient, emailclient, adresseclient, codepostalclient) VALUES (?, ?, ?, ?, ?)', [nomclient, prenomclient, emailclient, adresseclient, codepostalclient]);
         res.status(201).end();
     }); 
+    /**
+ * @swagger
+ * /clients/{id}:
+ *   put:
+ *     summary: Update a client
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               nomclient:
+ *                 type: string
+ *               prenomclient:
+ *                 type: string
+ *               emailclient:
+ *                 type: string
+ *               adresseclient:
+ *                 type: string
+ *               codepostalclient:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Updated
+ *       400:
+ *         description: Missing required parameters
+ */
     app.put('/clients/:id', async (req, res) => {
         const id = req.params.id;
         const { nomclient, prenomclient, emailclient, adresseclient, codepostalclient } = req.body;
@@ -206,12 +694,54 @@ initDB().then(async (rootConnection) => {
         await connection.query('UPDATE Clients SET nomclient = ?, prenomclient = ?, emailclient = ?, adresseclient = ?, codepostalclient = ? WHERE id = ?', [nomclient, prenomclient, emailclient, adresseclient, codepostalclient, id]);
         res.status(200).end();
     });
+    /**
+ * @swagger
+ * /clients/{id}:
+ *   delete:
+ *     summary: Delete a client
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Deleted
+ */
     app.delete('/clients/:id', async (req, res) => {
         const id = req.params.id;
         await connection.query('DELETE FROM Clients WHERE id = ?', [id]);
         res.status(200).end();
     });
-
+/**
+ * @swagger
+ * /clients/{id}/commandes:
+ *   get:
+ *     summary: Retrieve a list of commandes for a specific client
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: A list of commandes
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   id:
+ *                     type: integer
+ *                   datecommande:
+ *                     type: string
+ *                   idclient:
+ *                     type: integer
+ */
     app.get('/clients/:id/commandes', async (req, res) => {
         const clientId = req.params.id;
         const [commandes] = await connection.query('SELECT * FROM Commandes WHERE idclient = ?', [clientId]);
@@ -220,6 +750,43 @@ initDB().then(async (rootConnection) => {
 
 
     // CRUD COMMANDES
+    /**
+ * @swagger
+ * /commandes:
+ *   get:
+ *     summary: Retrieve a list of commandes
+ *     parameters:
+ *       - in: query
+ *         name: start
+ *         schema:
+ *           type: string
+ *           format: date
+ *         required: false
+ *         description: Start date for filtering commandes
+ *       - in: query
+ *         name: end
+ *         schema:
+ *           type: string
+ *           format: date
+ *         required: false
+ *         description: End date for filtering commandes
+ *     responses:
+ *       200:
+ *         description: A list of commandes
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   id:
+ *                     type: integer
+ *                   datecommande:
+ *                     type: string
+ *                   idclient:
+ *                     type: integer
+ */
     app.get('/commandes', async (req, res) => {
         const { start, end } = req.query;
         let query = 'SELECT * FROM Commandes';
@@ -233,6 +800,28 @@ initDB().then(async (rootConnection) => {
         const [commandes] = await connection.query(query, params);
         res.json(commandes);
     });
+    /**
+ * @swagger
+ * /commandes:
+ *   post:
+ *     summary: Create a new commande
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               datecommande:
+ *                 type: string
+ *               idclient:
+ *                 type: integer
+ *     responses:
+ *       201:
+ *         description: Created
+ *       400:
+ *         description: Missing required parameters
+ */
     app.post('/commandes', async (req, res) => {
         const { datecommande, idclient } = req.body;
         if (!datecommande || !idclient) {
@@ -241,6 +830,34 @@ initDB().then(async (rootConnection) => {
         await connection.query('INSERT INTO Commandes (datecommande, idclient) VALUES (?, ?)', [datecommande, idclient]);
         res.status(201).end();
     });
+    /**
+ * @swagger
+ * /commandes/{id}:
+ *   put:
+ *     summary: Update a commande
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               datecommande:
+ *                 type: string
+ *               idclient:
+ *                 type: integer
+ *     responses:
+ *       200:
+ *         description: Updated
+ *       400:
+ *         description: Missing required parameters
+ */
     app.put('/commandes/:id', async (req, res) => {
         const id = req.params.id;
         const { datecommande, idclient } = req.body;
@@ -250,12 +867,76 @@ initDB().then(async (rootConnection) => {
         await connection.query('UPDATE Commandes SET datecommande = ?, idclient = ? WHERE id = ?', [datecommande, idclient, id]);
         res.status(200).end();
     });
+    /**
+ * @swagger
+ * /commandes/{id}:
+ *   delete:
+ *     summary: Delete a commande
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Deleted
+ */
     app.delete('/commandes/:id', async (req, res) => {
         const id = req.params.id;
         await connection.query('DELETE FROM Commandes WHERE id = ?', [id]);
         res.status(200).end();
     });
 
+    /**
+ * @swagger
+ * /commandes/search:
+ *   get:
+ *     summary: Search for commandes with multiple criteria
+ *     parameters:
+ *       - in: query
+ *         name: clientId
+ *         schema:
+ *           type: integer
+ *         required: false
+ *         description: Client ID for filtering commandes
+ *       - in: query
+ *         name: startDate
+ *         schema:
+ *           type: string
+ *           format: date
+ *         required: false
+ *         description: Start date for filtering commandes
+ *       - in: query
+ *         name: endDate
+ *         schema:
+ *           type: string
+ *           format: date
+ *         required: false
+ *         description: End date for filtering commandes
+ *       - in: query
+ *         name: productId
+ *         schema:
+ *           type: integer
+ *         required: false
+ *         description: Product ID for filtering commandes
+ *     responses:
+ *       200:
+ *         description: A list of commandes
+ *         content:
+ *           application/json:
+ *              schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   id:
+ *                     type: integer
+ *                   datecommande:
+ *                     type: string
+ *                   idclient:
+ *                     type: integer
+ */
     app.get('/commandes/search', async (req, res) => {
         const { clientId, startDate, endDate, productId } = req.query;
         let query = `
@@ -292,10 +973,64 @@ initDB().then(async (rootConnection) => {
     });
 
     // CRUD LIGNESCOMMANDES
+
+    /**
+ * @swagger
+ * /lignescommandes:
+ *   get:
+ *     summary: Retrieve a list of lignescommandes
+ *     responses:
+ *       200:
+ *         description: A list of lignescommandes
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   id:
+ *                     type: integer
+ *                   idcommande:
+ *                     type: integer
+ *                   idproduit:
+ *                     type: integer
+ *                   quantitecommande:
+ *                     type: integer
+ *                   prixunitaire:
+ *                     type: number
+ */
+
     app.get('/lignescommandes', async (req, res) => {
         const [lignescommandes] = await connection.query('SELECT * FROM LignesCommandes');
         res.json(lignescommandes);
     });
+    /**
+ * @swagger
+ * /lignescommandes:
+ *   post:
+ *     summary: Create a new lignecommande
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               idcommande:
+ *                 type: integer
+ *               idproduit:
+ *                 type: integer
+ *               quantitecommande:
+ *                 type: integer
+ *               prixunitaire:
+ *                 type: number
+ *     responses:
+ *       201:
+ *         description: Created
+ *       400:
+ *         description: Missing required parameters
+ */
     app.post('/lignescommandes', async (req, res) => {
         const { idcommande, idproduit, quantitecommande, prixunitaire } = req.body;
         if (!idcommande || !idproduit || !quantitecommande || !prixunitaire) {
@@ -304,6 +1039,38 @@ initDB().then(async (rootConnection) => {
         await connection.query('INSERT INTO LignesCommandes (idcommande, idproduit, quantitecommande, prixunitaire) VALUES (?, ?, ?, ?)', [idcommande, idproduit, quantitecommande, prixunitaire]);
         res.status(201).end();
     });
+    /**
+ * @swagger
+ * /lignescommandes/{id}:
+ *   put:
+ *     summary: Update a lignecommande
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               idcommande:
+ *                 type: integer
+ *               idproduit:
+ *                 type: integer
+ *               quantitecommande:
+ *                 type: integer
+ *               prixunitaire:
+ *                 type: number
+ *     responses:
+ *       200:
+ *         description: Updated
+ *       400:
+ *         description: Missing required parameters
+ */
     app.put('/lignescommandes/:id', async (req, res) => {
         const id = req.params.id;
         const { idcommande, idproduit, quantitecommande, prixunitaire } = req.body;
@@ -313,6 +1080,24 @@ initDB().then(async (rootConnection) => {
         await connection.query('UPDATE LignesCommandes SET idcommande = ?, idproduit = ?, quantitecommande = ?, prixunitaire = ? WHERE id = ?', [idcommande, idproduit, quantitecommande, prixunitaire, id]);
         res.status(200).end();
     });
+  /**
+ * @swagger
+ * /lignescommandes/{id}:
+ *   delete:
+ *     summary: Delete an order line
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: Order line ID
+ *     responses:
+ *       200:
+ *         description: Order line deleted successfully
+ *       500:
+ *         description: Error deleting order line
+ */
     app.delete('/lignescommandes/:id', async (req, res) => {
         const id = req.params.id;
         await connection.query('DELETE FROM LignesCommandes WHERE id = ?', [id]);
@@ -320,6 +1105,43 @@ initDB().then(async (rootConnection) => {
     });
 
     //Amélioration de la logique
+
+    /**
+ * @swagger
+ * /commandeauto:
+ *   post:
+ *     summary: Create an order with automatic stock management
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               date_commande:
+ *                 type: string
+ *                 format: date
+ *               idClient:
+ *                 type: integer
+ *               lignescommandes:
+ *                 type: array
+ *                 items:
+ *                   type: object
+ *                   properties:
+ *                     idproduit:
+ *                       type: integer
+ *                     quantitecommande:
+ *                       type: integer
+ *                     prixunitaire:
+ *                       type: number
+ *     responses:
+ *       201:
+ *         description: Order and order lines created successfully
+ *       400:
+ *         description: Missing required parameters or insufficient stock
+ *       500:
+ *         description: Error creating order
+ */
     app.post('/commandeauto', async (req, res) => {
         const { date_commande, idClient, lignescommandes } = req.body;
     
@@ -358,6 +1180,43 @@ initDB().then(async (rootConnection) => {
     });
 
     //Produit le plus vendu
+    /**
+ * @swagger
+ * /stats/lesplusvendus:
+ *   get:
+ *     summary: Get the most sold products
+ *     parameters:
+ *       - in: query
+ *         name: startDate
+ *         schema:
+ *           type: string
+ *           format: date
+ *         required: false
+ *         description: Start date for the period
+ *       - in: query
+ *         name: endDate
+ *         schema:
+ *           type: string
+ *           format: date
+ *         required: false
+ *         description: End date for the period
+ *     responses:
+ *       200:
+ *         description: A list of the most sold products
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   nomreference:
+ *                     type: string
+ *                   total_sold:
+ *                     type: integer
+ *       500:
+ *         description: Error retrieving the most sold products
+ */
     app.get('/stats/lesplusvendus', async (req, res) => {
         const { startDate, endDate } = req.query;
         let query = `
@@ -386,6 +1245,39 @@ initDB().then(async (rootConnection) => {
     });
 
     //Total des produits vendus sur une période
+    /**
+ * @swagger
+ * /stats/totalventes:
+ *   get:
+ *     summary: Get total sales over a period
+ *     parameters:
+ *       - in: query
+ *         name: startDate
+ *         schema:
+ *           type: string
+ *           format: date
+ *         required: false
+ *         description: Start date for the period
+ *       - in: query
+ *         name: endDate
+ *         schema:
+ *           type: string
+ *           format: date
+ *         required: false
+ *         description: End date for the period
+ *     responses:
+ *       200:
+ *         description: Total sales amount
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 total_sales:
+ *                   type: number
+ *       500:
+ *         description: Error retrieving total sales
+ */
     app.get('/stats/totalventes', async (req, res) => {
         const { startDate, endDate } = req.query;
         let query = `
@@ -411,6 +1303,40 @@ initDB().then(async (rootConnection) => {
     });
 
     //Notification de stock faible
+
+    /**
+ * @swagger
+ * /produits/stock-faible:
+ *   get:
+ *     summary: Get products with low stock
+ *     parameters:
+ *       - in: query
+ *         name: seuil
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: Stock threshold
+ *     responses:
+ *       200:
+ *         description: A list of products with low stock
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   id:
+ *                     type: integer
+ *                   nomreference:
+ *                     type: string
+ *                   quantitestock:
+ *                     type: integer
+ *       400:
+ *         description: Invalid threshold value
+ *       500:
+ *         description: Error retrieving products with low stock
+ */
     app.get('/produits/stock-faible', async (req, res) => {
         const { seuil } = req.query;
         const threshold = parseInt(seuil, 10);
